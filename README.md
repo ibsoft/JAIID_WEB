@@ -16,7 +16,7 @@ INSTALLATION
 
 
 1. Clone the repository [ git clone https://github.com/ibsoft/JAIID_WEB.git ]
-2. Connect your camera !!!
+2. Connect your camera !!! <-- IMPORTANT
 3. [ cd JAIID_WEB ]
 4. IF LINUX [ python3 -m venv venv ]
 5. IF WINDOWS [ python -m venv venv ]
