@@ -13,18 +13,21 @@ Ioannis A. (Yannis) Bouhras [ ioannis.bouhras@gmail.com ] [ mycyberdevops@gmail.
 
 INSTALLATION
 
+
+
 1. Clone the repository [ git clone https://github.com/ibsoft/JAIID_WEB.git ]
-2. [ cd JAIID_WEB ]
-3. IF LINUX [ python3 -m venv venv ]
-4. IF WINDOWS [ python -m venv venv ]
-5. IF LINUX [ source venv/bin/activate ]
-6. IF WINDOWS [ .\venv\Scripts\activate ]
-7. IF LINUX [ pip install -r requirements-linux.txt ]
-8. IF WINDOWS [ pip install requirements-windows.txt]
-9. [ pip install ultralytics ]
-10. [ flask run ]
-11. Point your browser to http://localhost:5000/
-12. Login
+2. Connect your camera !!!
+3. [ cd JAIID_WEB ]
+4. IF LINUX [ python3 -m venv venv ]
+5. IF WINDOWS [ python -m venv venv ]
+6. IF LINUX [ source venv/bin/activate ]
+7. IF WINDOWS [ .\venv\Scripts\activate ]
+8. IF LINUX [ pip install -r requirements-linux.txt ]
+9. IF WINDOWS [ pip install requirements-windows.txt]
+10. [ pip install ultralytics ]
+11. [ flask run ]
+12. Point your browser to http://localhost:5000/
+13. Login
 
     Username: admin
     Password: !Astronomy7?
