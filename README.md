@@ -41,3 +41,9 @@ INSTALLATION
     Password: !Astronomy7?
 
 Happy hunting!! Enjoy!
+
+License
+
+JAIID embraces the GNU Affero General Public License v3.0 (AGPL-3.0) for its repositories, promoting openness, transparency, and collaborative enhancement in software development. This strong copyleft license ensures that all users and developers retain the freedom to use, modify, and share the software. It fosters community collaboration, ensuring that any improvements remain accessible to all.
+
+Users and developers are encouraged to familiarize themselves with the terms of AGPL-3.0 to contribute effectively and ethically to the JAIID open-source community.
