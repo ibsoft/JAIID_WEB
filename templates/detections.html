@@ -1,0 +1,52 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    Live Detection
+{% endblock %}
+
+{% block content %}
+
+    <h1 class="mt-4"><i class="fas fa-eye"></i> Detection logs</h1>
+<br>
+
+    <div class="container-fluid">
+        <div class="card text-center">
+            <div class="card-header">
+                <h5 class="card-title">Images</h5>
+            </div>
+            <div class="card-body ">
+                <div class="row">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    {% for column in columns %}
+                        <th>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data %}
+                    <tr>
+                        {% for column in columns %}
+                            <td>{{ row[column] }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <!-- Add pagination links -->
+        <!-- Add pagination links -->
+
+
+<!-- Add pagination links -->
+<div class="pagination">
+    {{ pagination.links }}
+</div>
+
+</div>
+</div>
+</div>
+
+    </div>
+
+    {% endblock %}

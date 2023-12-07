@@ -1,0 +1,147 @@
+{% extends 'layout.html' %}
+
+{% block title %}New{% endblock %}
+
+
+
+{% block content %}
+    {% if num_pages == 0 %}
+    <h1 class="mt-4"><i class="fas fa-globe"></i> JAIID {{version}}</h1>
+    <br>
+    {% else %}
+    <h1 class="mt-4"><i class="fas fa-globe"></i> Suspect Impacts</h1>
+    <br>
+    {% endif %}
+    <div class="container-fluid">
+      
+        {% if num_pages == 0 %}
+
+
+        <div class="container center-screen text-center">       
+            <div class="mt-4">
+                <a href="https://github.com/ibsoft/JAIID_WEB">
+                    <img src="{{ url_for('static', filename='images/login_logo.png') }}" alt="JAIID" width="300" height="80">
+                </a>
+                <h3> Welcome to [ <b>JAIID</b> ] - JOVIAN ARTIFICIAL INTELLIGENCE IMPACT DETECTOR </h3>
+            </div>
+        </div>
+        
+        
+
+        {% else %}
+        <div class="card text-center">
+            <div class="card-header">
+                <h5 class="card-title">Latest Captures</h5>
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <div class="row">
+                    {% for photo in photos %}
+                        <div class="col-md-3 mb-3">
+                            <div class="card">
+                                <img src="{{ url_for('serve_image', filename=photo, folder=photo_folder) }}" class="card-img-top" alt="{{ photo }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ photo }}</h5>
+                                    <a href="{{ url_for('show_photo', filename=photo) }}" class="btn btn-primary">Review suspect detection</a>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+       
+    </div>
+    
+    <div class="d-flex justify-content-between align-items-center">
+        <form method="get" action="{{ url_for('dashboard') }}">
+            <div class="form-group">
+                <label for="page_size">Page size:</label>
+                <select name="page_size" id="page_size" class="form-control" onchange="this.form.submit()">
+                    <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+                    <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
+                    <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                    <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+                    <option value="500" {% if page_size == 100 %}selected{% endif %}>500</option>
+                    <option value="1000" {% if page_size == 100 %}selected{% endif %}>1000</option>
+                </select>
+            </div>
+        </form>
+        {% if num_pages > 1 %}
+        <nav>
+            <ul class="pagination">
+                {% if page > 1 %}
+                <li class="page-item"><a class="page-link" href="{{ url_for('dashboard', page=page-1, page_size=page_size) }}">Previous</a></li>
+                {% else %}
+                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                {% endif %}
+                {% for i in range(1, num_pages+1) %}
+                {% if i == page %}
+                <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                {% else %}
+                <li class="page-item"><a class="page-link" href="{{ url_for('dashboard', page=i, page_size=page_size) }}">{{ i }}</a></li>
+                {% endif %}
+                {% endfor %}
+                {% if page < num_pages %}
+                <li class="page-item"><a class="page-link" href="{{ url_for('dashboard', page=page+1, page_size=page_size) }}">Next</a></li>
+                {% else %}
+                <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% endif %}
+        
+
+    </div>
+
+    {% if num_pages == 0 %}
+
+    {% else %}
+
+    <div class="d-flex justify-content-end">
+        <form action="{{ url_for('delete_all_photos_route') }}" method="post" onsubmit="return confirm('Are you sure you want to delete all images?');">
+            <button type="submit" class="btn btn-danger mt-3">Purge all images</button>
+        </form>
+    </div>
+    
+    {% endif %}
+    
+    
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+{% endblock %}
+
+
+
+{% block scripts%}
+{% if num_pages == 0 %}
+
+        <script>
+            window.addEventListener('load', function() {
+                // Your script code here
+
+                toastr.success('Welcome to JAIID');
+
+                console.log('Welcome!');
+            });
+        </script>
+
+    {% else %}
+        <script>
+            window.addEventListener('load', function() {
+                // Your script code here
+
+                toastr.success('Images loaded successfully');
+
+                console.log('Page and all resources loaded!');
+            });
+        </script>
+
+{% endif %}
+
+{% endblock %}
+
+

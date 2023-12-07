@@ -1,0 +1,115 @@
+{% extends 'layout.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+
+
+<style>
+    .password-container {
+        position: relative;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+    }
+    .full-width-input {
+        width: 100%;
+        box-sizing: border-box; /* Optional: Include padding and border in the total width */
+    }
+    .no-border {
+        border: none;
+    }
+</style>
+
+
+<div class="container-fluid">
+    <h1 class="mt-4"><i class="far fa-user"></i> User Profile</h1>
+    <br>
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Password</h5>
+        </div>
+
+        <div class="card-body">
+            {% if user %}
+                <p>Username: {{ user.username }}</p>
+                <p>Password: ***********************************************</p>
+                <!-- Add other profile information as needed -->
+
+                <a href="{{ url_for('change_password') }}" class="btn btn-primary">Change Password</a>
+            {% else %}
+                <p>User not found</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if username == "admin"%}
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title">User Management</h5>
+        </div>
+
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Password</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.username }}</td>
+                            <td class="password-container">
+                                <span class="password-text" style="display: none;">{{ user.password }}</span>
+                                <input type="password" class="password-input full-width-input no-border" value="{{ user.password }}" readonly>
+
+
+                                <span class="toggle-password" onclick="togglePasswordVisibility(this)">👁️</span>
+                            </td>
+                            <td>
+                                {% if user.username != "admin" %}
+                                    <a href="{{ url_for('delete_user', user_id=user.id) }}" class="btn btn-danger btn-sm">Delete</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <a href="{{ url_for('add_user') }}" class="btn btn-primary">Add User</a>
+        </div>
+    </div>
+
+    {%endif%}
+
+</div>
+
+<script>
+    function togglePasswordVisibility(button) {
+        const container = button.closest('.password-container');
+        const input = container.querySelector('.password-input');
+        const text = container.querySelector('.password-text');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            text.style.display = 'inline';
+            text.style.display = 'none'
+        } else {
+            input.type = 'password';
+            text.style.display = 'none';
+        }
+    }
+</script>
+
+{% endblock %}

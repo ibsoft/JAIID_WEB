@@ -1,0 +1,110 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    Live Detection
+{% endblock %}
+
+{% block content %}
+<br>
+<h1 class="mb-4"><i class="fa fa-cog"></i> AI Models</h1>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Model Selection</h5>
+    </div>
+
+    <div class="card-body">
+        <div class="container mt-5">
+            <form action="/process_model" method="post">
+                <div class="form-group">
+                    <label for="modelSelect">Select AI Model:</label>
+                    <select class="form-control" id="modelSelect" name="selected_model">
+                        {% for model in model_files %}
+                            <option value="{{ model }}" {% if model == selected_model %}selected{% endif %}>{{ model }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <br>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+
+            {% if selected_model %}
+                <div class="mt-3">
+                    <p>Currently using AI Model: {{ selected_model }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<br>
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Upload Model</h5>
+    </div>
+
+    <div class="card-body">
+        <div class="container mt-5">
+            
+            <h5 class="mt-4">Upload Your Own AI Model</h5>
+
+            {% if error %}
+                <div class="alert alert-danger" role="alert">{{ error }}</div>
+            {% endif %}
+
+            {% if success %}
+                <div class="alert alert-success" role="alert">{{ success }} - Filename: {{ filename }}</div>
+            {% endif %}
+
+            <form action="/settings" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="modelFile">Choose a model file:</label>
+                    <input type="file" class="form-control-file" id="modelFile" name="file" accept=".pt" required>
+                </div>
+                <br>
+                <button type="submit" class="btn btn-primary">Upload</button>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+
+<hr>
+
+<br>
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Uploaded AI models</h5>
+    </div>
+
+    <div class="card-body">
+        <div class="container mt-5">
+            <h5 class="mt-4">Existing Models</h5>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Model Name</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for model in model_files %}
+                        <tr>
+                            <td>{{ model }}</td>
+                            <td>
+                                <form action="/delete_model" method="post">
+                                    <input type="hidden" name="model_name" value="{{ model }}">
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'layout.html' %}
+
+{% block title %}Error{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2>An error occured. Please contact developer!</h2>
+    <div class="alert alert-danger" role="alert">
+        <p>Something went wrong:</p>
+        <p>{{ error }}</p>
+    </div>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+</div>
+{% endblock %}

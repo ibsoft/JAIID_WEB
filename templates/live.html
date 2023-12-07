@@ -1,0 +1,176 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    Live Detection
+{% endblock %}
+
+{% block content %}
+    <h1 class="mt-4"><i class="fas fa-video"></i> Live Feed</h1>
+    
+
+
+    <br>
+    <div class="container">
+        <div class="card text-center">
+            <div class="card-header">
+                <h5 class="card-title">Live Impact Detection</h5>
+                <div id="please-wait" style="display: none;">
+                    <p><b>Please wait...</b></p>
+                </div>
+            </div>
+            <div id="video-container" style="display: none;">
+            <div class="card-body card-body-black">
+                <div class="row">
+                    
+                        <div class="row justify-content-center">
+                            <div class="col-md-8 red-frame">
+                                <img src="{{ url_for('video_feed') }}" id="video-feed" class="img-fluid" alt="Webcam Feed">
+                            </div>
+                        </div>
+                    </div>
+    </div>
+</div>
+</div>
+    </div>
+    <br>
+
+    <div class="container mt-5">
+        <h2>Camera Controls</h2>
+        <form id="cameraControlsForm">
+            <div class="form-group">
+                <label for="gain">Gain:</label>
+                <input class="form-control" type="number" id="gain" name="gain" value="{{ gain }}">
+            </div>
+
+            <div class="form-group">
+                <label for="exposure">Exposure:</label>
+                <input class="form-control" type="number" id="exposure" name="exposure" value="{{ exposure }}">
+            </div>
+
+            <div class="form-group">
+                <label for="wb_b">White Balance (Blue):</label>
+                <input class="form-control" type="number" id="wb_b" name="wb_b" value="{{ wb_b }}">
+            </div>
+
+            <div class="form-group">
+                <label for="wb_r">White Balance (Red):</label>
+                <input class="form-control" type="number" id="wb_r" name="wb_r" value="{{ wb_r }}">
+            </div>
+
+            <div class="form-group">
+                <label for="gamma">Gamma:</label>
+                <input class="form-control" type="number" id="gamma" name="gamma" value="{{ gamma }}">
+            </div>
+
+            <div class="form-group">
+                <label for="brightness">Brightness:</label>
+                <input class="form-control" type="number" id="brightness" name="brightness" value="{{ brightness }}">
+            </div>
+
+            <div class="form-group">
+                <label for="flip">Flip:</label>
+                <input class="form-control" type="number" id="flip" name="flip" value="{{ flip }}">
+            </div>
+            <br>
+            <button type="button" class="btn btn-primary" onclick="setCameraControls()">Apply Controls</button>
+
+        </form>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        // Function to load camera controls from localStorage
+        function loadCameraControls() {
+            const formData = JSON.parse(localStorage.getItem('cameraControls')) || {};
+            document.getElementById('gain').value = formData.gain || 200;
+            document.getElementById('exposure').value = formData.exposure || 10000;
+            document.getElementById('wb_b').value = formData.wb_b || 95;
+            document.getElementById('wb_r').value = formData.wb_r || 52;
+            document.getElementById('gamma').value = formData.gamma || 0;
+            document.getElementById('brightness').value = formData.brightness || 0;
+            document.getElementById('flip').value = formData.flip || 0;
+        }
+
+        // Call the function on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            loadCameraControls();
+        });
+
+        function setCameraControls() {
+            function showLoadingSpinner() {
+                document.getElementById('loading-spinner').style.display = 'block';
+            }
+
+            // Function to hide the loading spinner
+            function hideLoadingSpinner() {
+                document.getElementById('loading-spinner').style.display = 'none';
+            }
+
+            // Get form values
+            const gain = document.getElementById('gain').value;
+            const exposure = document.getElementById('exposure').value;
+            const wb_b = document.getElementById('wb_b').value;
+            const wb_r = document.getElementById('wb_r').value;
+            const gamma = document.getElementById('gamma').value;
+            const brightness = document.getElementById('brightness').value;
+            const flip = document.getElementById('flip').value;
+
+            // Save form data to localStorage
+            const formData = {
+                gain: gain,
+                exposure: exposure,
+                wb_b: wb_b,
+                wb_r: wb_r,
+                gamma: gamma,
+                brightness: brightness,
+                flip: flip,
+            };
+
+            localStorage.setItem('cameraControls', JSON.stringify(formData));
+
+            // Make AJAX request to set_camera_controls endpoint
+            fetch('/set_camera_controls', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'gain': gain,
+                    'exposure': exposure,
+                    'wb_b': wb_b,
+                    'wb_r': wb_r,
+                    'gamma': gamma,
+                    'brightness': brightness,
+                    'flip': flip,
+                }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        toastr.success('Camera controls applied successfully');
+                    } else {
+                        toastr.error(`Failed to apply camera controls. Error: ${data.error}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toastr.error('An error occurred while applying camera controls');
+                });
+        }
+    </script>
+
+    <script>
+        // Show "Please wait" message initially
+        document.getElementById('please-wait').style.display = 'block';
+    
+        setTimeout(function() {
+            // Hide "Please wait" message
+            document.getElementById('please-wait').style.display = 'none';
+    
+            // Show the video container after 5 seconds
+            document.getElementById('video-container').style.display = 'block';
+        }, 5000); // 5000 milliseconds = 5 seconds
+    </script>
+{% endblock %}

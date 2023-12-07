@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+</head>
+<body>
+    <div class="container">
+        <center>
+        <a href="https://github.com/ibsoft/JAIID">
+            <img src="{{ url_for('static', filename='images/login_logo.png') }}" alt="JAIID" width="300" height="80">
+        </a>
+        </center>
+        
+        <h1>Login</h1>
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+        <form method="POST" action="/">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Login</button>
+        </form>
+        {% if register_users %}
+        <p>Don't have an account? <a href="{{ url_for('register') }}">Register</a></p>
+        {% endif %}
+    </div>
+</body>
+</html>

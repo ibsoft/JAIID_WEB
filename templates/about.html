@@ -1,0 +1,57 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <h1 class="mt-4"><i class="fas fa-globe"></i> JAIID {{ version }}</h1>
+    <br>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">About JAIID</h5>
+        </div>
+        <div class="card-body">
+            <div class="about-page">
+                <a href="https://github.com/ibsoft/JAIID_WEB">
+                    <img src="{{ url_for('static', filename='images/login_logo.png') }}" alt="JAIID" width="300" height="80">
+                </a>
+                <br>
+                <p>Welcome to JAIID! An artificial Intelligence impact detector!</p>
+
+                <p>Author: Ioannis (Yannis) A. Bouhras [ Amateur Astronomer ] - ioannis.bouhras@gmail.com</p>
+                <p>Ιωάννης Α. Μπούχρας [ Ερασιτέχνης Αστρονόμος ]</p>
+
+                <p>Athens - Greece - Αθήνα - Ελλάδα</p>
+
+                <p>Web Page: <a href="https://www.e-astronomer.com" target="_blank">https://www.e-astronomer.com</a></p>
+
+                <p>JAIID WEB Version 1.0.0 beta</p>
+
+                <p>JAIID WEB Project on <a href="https://github.com/ibsoft/JAIID_WEB">Github</a></p>
+
+                <p>JAIID Console and AI training model  project on <a href="https://github.com/ibsoft/JAIID">Github</a></p>
+
+                <p>Supports only ZWO ASI Cameras on Windows or Linux - Tested with ASI 290MC camera</p>
+
+                <!-- Add your about content here -->
+
+            </div>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">JAIID License</h5>
+        </div>
+        <div class="card-body">
+            <h2>License</h2>
+
+            <p>This project is licensed under the <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank">GNU Affero General Public License (AGPL) version 3.0</a>.</p>
+
+            <p>AGPL-3.0 License: This OSI-approved open-source license is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the LICENSE file for more details.</p>
+
+            <p>You can find the full text of the license <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank">here</a>.</p>
+            <p>Please make sure to read and understand the terms of the AGPL license before using or contributing to this project.</p>
+        </div>
+    </div>
+{% endblock %}

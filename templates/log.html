@@ -1,0 +1,191 @@
+{% extends 'layout.html' %}
+
+{% block title %}Platform Logs{% endblock %}
+
+{% block content %}
+<br>
+<h1 class="mb-4"><i class="far fa-sticky-note"></i> System logs</h1>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Log monitoring</h5>              
+    </div>
+   
+    <div class="card-body">
+        <div class="table-responsive">
+            
+            <style>
+                .info { background-color:  #dcf6d1; }
+                .warning { background-color:  #f3ea5e; }
+                .error { background-color: #fb594c; }
+                .provider { color: #f46f5c; }
+            </style>
+
+
+            <form>
+                <input type="text" id="search-input" placeholder="Search results...">
+                <button type="submit" id="search-btn" class="btn btn-success mb-10 mr-10">Search</button>
+              </form>
+              <br>
+              
+
+            <table id="log-table" class="table table-bordered table-striped table-hover small">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Level</th>
+                        <th>Module</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for line in lines %}
+                    <tr class="{% if line.level == 'INFO' %}info{% elif line.level == 'WARNING' %}warning{% elif line.level == 'ERROR' %}error{% endif %}">
+                        <td>{{ line.timestamp }}</td>
+                        <td>{{ line.level }}</td>
+                        <td>{{ line.module }}</td>
+                        <td {% if "Gateway" in line.message %}style="color:green;"{% elif "Authorization:" in line.message %}style="color:blue;"{% endif %}>{{ line.message }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="d-flex justify-content-between align-items-center">
+                <form method="get" action="{{ url_for('log') }}">
+                    <div class="form-group">
+                        <label for="page_size">Page size:</label>
+                        <select name="page_size" id="page_size" class="form-control" onchange="this.form.submit()">
+                            <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+                            <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
+                            <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                            <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+                            <option value="500" {% if page_size == 100 %}selected{% endif %}>500</option>
+                            <option value="1000" {% if page_size == 100 %}selected{% endif %}>1000</option>
+                        </select>
+                    </div>
+                </form>
+                {% if num_pages > 1 %}
+                <nav>
+                    <ul class="pagination">
+                        {% if current_page > 1 %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('log', page=current_page-1, page_size=page_size) }}">Previous</a></li>
+                        {% else %}
+                        <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                        {% endif %}
+                        {% for i in range(1, num_pages+1) %}
+                        {% if i == current_page %}
+                        <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                        {% else %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('log', page=i, page_size=page_size) }}">{{ i }}</a></li>
+                        {% endif %}
+                        {% endfor %}
+                        {% if current_page < num_pages %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('log', page=current_page+1, page_size=page_size) }}">Next</a></li>
+                        {% else %}
+                        <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<br>
+<div class="d-flex">
+
+    <form action="{{ url_for('clear_log') }}" method="POST">
+        <button type="submit" class="btn btn-danger mb-1" id="clearLog"><i class="fas fa-trash"></i> Clear Log</button>
+    </form>
+    &nbsp;&nbsp;
+       <form>
+        <button type="submit" class="btn btn-success mb-10 mr-10" id="exportBtn"><i class="fas fa-file-excel"></i> Export</button>
+    </form>
+    &nbsp;&nbsp;
+    <form method="get" action="{{ url_for('log') }}">
+        <button type="submit" class="btn btn-success mb-10 mr-10" id="reloadLog"><i class="fas fa-sync-alt"></i> Reload</button>
+    </form>
+      
+    
+</div>
+
+
+
+
+{% endblock %}
+
+
+{% block scripts%}
+
+
+
+    <script>
+        $(document).ready(function () {
+        
+            window.setTimeout(function() {
+                $(".alert").fadeTo(1000, 0).slideUp(1000, function(){
+                    $(this).remove(); 
+                });
+            }, 5000);
+            
+            }); 
+    </script>
+
+
+    <script>
+        const searchInput = document.querySelector('#search-input');
+        const searchBtn = document.querySelector('#search-btn');
+        const tableRows = document.querySelectorAll('#log-table tbody tr');
+
+        searchBtn.addEventListener('click', (event) => {
+        event.preventDefault(); // prevent form submission behavior
+        const searchTerm = searchInput.value.toLowerCase();
+        for (let i = 0; i < tableRows.length; i++) {
+            const cells = tableRows[i].querySelectorAll('td');
+            let rowMatches = false;
+            for (let j = 0; j < cells.length; j++) {
+            const cellText = cells[j].textContent.toLowerCase();
+            if (cellText.includes(searchTerm)) {
+                rowMatches = true;
+                break;
+            }
+            }
+            if (rowMatches) {
+            tableRows[i].style.display = '';
+            } else {
+            tableRows[i].style.display = 'none';
+            }
+        }
+        });
+
+    </script>  
+
+
+    <script>
+        // Get the table element
+        const table = document.getElementById("log-table");
+
+        // Get the export button element
+        const exportBtn = document.getElementById("exportBtn");
+
+        // Add a click event listener to the export button
+        exportBtn.addEventListener("click", (event) => {
+        event.preventDefault(); // prevent form submission behavior
+
+        // Create a new Workbook
+        const wb = XLSX.utils.book_new();
+
+        // Convert the table element to a worksheet
+        const ws = XLSX.utils.table_to_sheet(table);
+
+        // Add the worksheet to the Workbook
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+        // Export the Workbook as a .xlsx file
+        XLSX.writeFile(wb, "application-logs.xlsx");
+        });
+
+    </script>
+
+{% endblock %}
+
+

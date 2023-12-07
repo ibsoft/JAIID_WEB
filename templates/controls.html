@@ -1,0 +1,94 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    Live Detection
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            Camera Controls
+        </div>
+        <div class="card-body">
+            <form id="cameraControlsForm">
+                <div class="form-group">
+                    <label for="gain">Gain</label>
+                    <input type="range" class="form-control-range" id="gain" name="gain" min="0" max="100" step="1" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="exposure">Exposure</label>
+                    <input type="range" class="form-control-range" id="exposure" name="exposure" min="1" max="100" step="1" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Flip</label>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="flipX" name="flipX">
+                        <label class="form-check-label" for="flipX">FlipX</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="flipY" name="flipY">
+                        <label class="form-check-label" for="flipY">FlipY</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="wb_b">White Balance Blue</label>
+                    <input type="range" class="form-control-range" id="wb_b" name="wb_b" min="0" max="255" step="1" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="wb_r">White Balance Red</label>
+                    <input type="range" class="form-control-range" id="wb_r" name="wb_r" min="0" max="255" step="1" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="gamma">Gamma</label>
+                    <input type="range" class="form-control-range" id="gamma" name="gamma" min="0" max="255" step="1" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="brightness">Brightness</label>
+                    <input type="range" class="form-control-range" id="brightness" name="brightness" min="0" max="255" step="1" value="0">
+                </div>
+                <button type="button" class="btn btn-primary" id="applyChangesBtn">Apply Changes</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{%block scripts%}
+<script>
+    function updateCameraControls() {
+        // Retrieve values from the form
+        var gain = document.getElementById('gain').value;
+        var exposure = document.getElementById('exposure').value;
+        var flipX = document.getElementById('flipX').checked ? 1 : 0;
+        var flipY = document.getElementById('flipY').checked ? 1 : 0;
+        var wb_b = document.getElementById('wb_b').value;
+        var wb_r = document.getElementById('wb_r').value;
+        var gamma = document.getElementById('gamma').value;
+        var brightness = document.getElementById('brightness').value;
+
+        // Send AJAX request to update camera controls
+        $.ajax({
+            type: 'POST',
+            url: '/set_camera_controls',
+            data: { gain: gain, exposure: exposure, flipX: flipX, flipY: flipY, wb_b: wb_b, wb_r: wb_r, gamma: gamma, brightness: brightness },
+            success: function(response) {
+                if (response.success) {
+                    alert('Camera controls updated successfully.');
+                } else {
+                    alert('Error updating camera controls: ' + response.error);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                alert('Error updating camera controls. ' + textStatus + ': ' + errorThrown);
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Attach the updateCameraControls function to the button click event
+        document.getElementById('applyChangesBtn').addEventListener('click', updateCameraControls);
+    });
+</script>
+
+{% endblock %}
