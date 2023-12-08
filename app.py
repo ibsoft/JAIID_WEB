@@ -1005,7 +1005,7 @@ def generate_frames():
                     # Get current date and time once
                     date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-                    # If the detected object is a "bottle," write to CSV and save frame
+                    # If the detected object is a "Impact," write to CSV and save frame
                     if classNames[cls] == 'Impact':
                         # Write to CSV
                         with open(csv_file_path, 'a', newline='') as csvfile:
