@@ -387,10 +387,14 @@ def live():
             flash(error_message, 'danger')
             return render_template('live.html', username=session.get("username", None))
 
+        if (camera_model):
+            CameraModel = camera_model
+        else:
+            CameraModel = "None detected!"
         # Camera initialized successfully, flash a success message
-        flash("Camera initialized successfully!", 'success')
+        flash("Camera " + camera_model + " initialized successfully!", 'success')
 
-        return render_template('live.html', username=session["username"])
+        return render_template('live.html', username=session["username"], det_camera=CameraModel)
     return redirect(url_for("login"))
 
 
@@ -826,6 +830,7 @@ def delete_user(user_id):
 
 def initialize_camera():
     global camera
+    global camera_model
 
     if camera is not None:
         return  # Camera is already initialized
@@ -866,6 +871,8 @@ def initialize_camera():
 
         print('')
         print("Camera detected: " + camera_info['Name'])
+
+        camera_model = camera_info['Name']
 
         # Get all of the camera controls
         print('')
