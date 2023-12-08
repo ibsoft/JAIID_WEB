@@ -937,7 +937,10 @@ def initialize_camera():
 
 def generate_frames():
     # Here is the actual work
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
+    print("Using: " + device)
     
     selected_model = load_selected_model_from_config()
     logging.info("----> MODEL <----")
