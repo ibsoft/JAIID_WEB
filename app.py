@@ -941,7 +941,7 @@ def generate_frames():
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
-    print("Using: " + device)
+    logging.info("Using: " + str(device))
     
     selected_model = load_selected_model_from_config()
     logging.info("----> MODEL <----")
