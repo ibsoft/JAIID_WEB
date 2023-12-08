@@ -925,6 +925,8 @@ def initialize_camera():
             asi.ASI_EXPOSURE)[0] / 1000) * 2 + 500
         camera.default_timeout = timeout
 
+        save_control_values("camera-settings", camera.get_control_values())
+
     except Exception as e:
         error_message = f"Error initializing camera: {str(e)}"
         logging.error(error_message)
