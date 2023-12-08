@@ -1123,7 +1123,7 @@ def set_camera_controls():
 
                 logging.info(
                     f"Camera controls set: {dict(gain=gain, exposure=exposure, wb_b=wb_b, wb_r=wb_r, gamma=gamma, brightness=brightness, flip=flip)}")
-
+                save_control_values("camera-settings", camera.get_control_values())
                 #flash('Camera values successfully updated', 'success')
                 return jsonify(success=True, message="Camera values updated"), 200
             else:
