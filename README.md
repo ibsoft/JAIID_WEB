@@ -16,8 +16,15 @@ The mechanish for trainning JAIID AI models: https://github.com/ibsoft/JAIID/
 
 Ioannis A. (Yannis) Bouhras [ ioannis.bouhras@gmail.com ] [ mycyberdevops@gmail.com ] - Project based on Ultralytics YOLO8 real-time object detection and image segmentation model !!!
 
-INSTALLATION
+INSTALLATION & REQUIREMENTS
 
+WINDOWS
+
+Python 3.10.11
+
+LINUX
+
+Python 3.10.12
 
 
 1. Clone the repository [ git clone https://github.com/ibsoft/JAIID_WEB.git ]
