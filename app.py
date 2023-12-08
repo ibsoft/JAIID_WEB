@@ -22,6 +22,7 @@ import pandas as pd
 import zwoasi as asi
 import pprint
 import time
+import torch
 import threading
 from ultralytics import YOLO
 from flask_paginate import Pagination
