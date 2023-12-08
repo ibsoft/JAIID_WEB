@@ -12,8 +12,6 @@ It should be acknowledged that the efficacy of JAIID WEB, in detecting impact fl
 JAIID currently supports ZWO Cameras - Tested with ZWO ASI 290mc !!!
 
 
-The mechanish for trainning JAIID AI models: https://github.com/ibsoft/JAIID/
-
 Ioannis A. (Yannis) Bouhras [ ioannis.bouhras@gmail.com ] [ mycyberdevops@gmail.com ] - Project based on Ultralytics YOLO8 real-time object detection and image segmentation model !!!
 
 INSTALLATION & REQUIREMENTS
