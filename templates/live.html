@@ -10,7 +10,7 @@
 
 
     <br>
-    <div class="container">
+    <div class="container-fluid">
         <div class="card text-center">
             <div class="card-header">
                 <h5 class="card-title">Live Impact Detection</h5>
@@ -19,17 +19,20 @@
                 </div>
             </div>
             <div id="video-container" style="display: none;">
-            <div class="card-body card-body-black">
-                <div class="row">
+                <div class="card-body card-body-black">
                     
-                        <div class="row justify-content-center">
-                            <div class="col-md-8 red-frame">
-                                <img src="{{ url_for('video_feed') }}" id="video-feed" class="img-fluid" alt="Webcam Feed">
-                            </div>
+                        
+                   
+                        <div class="col-md-12 red-frame">
+                            <img src="{{ url_for('video_feed') }}" id="video-feed" alt="Webcam Feed" style="width: 100%; height: auto;">
                         </div>
-                    </div>
-    </div>
-</div>
+                   <br>
+                        <button type="button" class="btn btn-primary" onclick="zoomIn()">Zoom In (+) </button>
+                        <button type="button" class="btn btn-primary" onclick="zoomOut()">Zoom Out (-)</button>
+                        
+                        
+                </div>
+            </div>
 </div>
     </div>
     <br>
@@ -172,5 +175,27 @@
             // Show the video container after 5 seconds
             document.getElementById('video-container').style.display = 'block';
         }, 5000); // 5000 milliseconds = 5 seconds
+    </script>
+
+
+    <script>
+        // Function to zoom in
+        function zoomIn() {
+            zoom(1.1); // You can adjust the scale factor as needed
+        }
+    
+        // Function to zoom out
+        function zoomOut() {
+            zoom(0.9); // You can adjust the scale factor as needed
+        }
+    
+        // Function to perform the zoom
+        function zoom(scaleFactor) {
+            const videoFeed = document.getElementById('video-feed');
+            const currentScale = parseFloat(videoFeed.style.transform.replace('scale(', '').replace(')', '')) || 1;
+    
+            const newScale = currentScale * scaleFactor;
+            videoFeed.style.transform = `scale(${newScale})`;
+        }
     </script>
 {% endblock %}

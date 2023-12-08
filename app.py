@@ -28,8 +28,6 @@ from ultralytics import YOLO
 from flask_paginate import Pagination
 
 
-
-
 __author__ = 'Ioannis A. bouhras'
 __version__ = '1.0.0 beta'
 __license__ = 'AGPL v3'
@@ -96,9 +94,10 @@ app.config['APP_VERSION'] = 'v 1.0.0 beta'
 
 Session(app)
 
-#folder to upload new models
+# folder to upload new models
 app.config['UPLOAD_FOLDER'] = 'models'
 app.config['ALLOWED_EXTENSIONS'] = {'pt'}
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -113,11 +112,12 @@ config.read(os.path.join(sys.path[0], 'application.conf'))
 register_users = config.getboolean("REGISTRATIONS", "register_users")
 
 
-
 def get_model_files():
     models_folder = 'models'
-    model_files = [file for file in os.listdir(models_folder) if file.endswith('.pt')]
+    model_files = [file for file in os.listdir(
+        models_folder) if file.endswith('.pt')]
     return model_files
+
 
 def save_selected_model_to_config(selected_model):
     config.read(config_file_path)
@@ -125,12 +125,10 @@ def save_selected_model_to_config(selected_model):
     with open(config_file_path, 'w') as config_file:
         config.write(config_file)
 
+
 def load_selected_model_from_config():
     config.read(config_file_path)
     return config.get("MODEL", "selected_model", fallback=None)
-
-
-
 
 
 # Create and open a CSV file
@@ -395,11 +393,13 @@ def live():
         return render_template('live.html', username=session["username"])
     return redirect(url_for("login"))
 
+
 @app.route('/images/<folder>/<filename>')
 def serve_image(folder, filename):
     if session['username']:
         return send_from_directory(folder, filename)
     return redirect(url_for("login"))
+
 
 @app.route('/images/<folder>/<filename>')
 def serve_original_image(folder, filename):
@@ -407,12 +407,14 @@ def serve_original_image(folder, filename):
         return send_from_directory(folder, filename)
     return redirect(url_for("login"))
 
+
 @app.route('/detections/<filename>')
 def serve_detection_image(filename):
     if session['username']:
         detection_folder = config.get("DETECTION_DIR", "detection_dir")
         return send_from_directory(detection_folder, filename)
     return redirect(url_for("login"))
+
 
 @app.route('/show_photo/<filename>')
 def show_photo(filename):
@@ -433,6 +435,7 @@ def show_photo(filename):
             original_filename=original_filename
         )
     return redirect(url_for("login"))
+
 
 @app.route('/delete_photo/<filename>', methods=['POST'])
 def delete_photo(filename):
@@ -462,6 +465,7 @@ def delete_photo(filename):
             traceback.print_exc()  # Print the full traceback to the console for debugging
             return render_template('error.html', error_message=str(e))
     return redirect(url_for("login"))
+
 
 def delete_csv_row(csv_file_path, filename):
     # Read CSV file into a list of dictionaries
@@ -523,6 +527,7 @@ def delete_all_photos_route():
         return redirect(url_for('dashboard'))
     return redirect(url_for("login"))
 
+
 @app.route("/logout", methods=["GET"])
 def logout():
     if session['username']:
@@ -530,6 +535,7 @@ def logout():
         session.pop("username", None)
         return redirect(url_for("login"))
     return redirect(url_for("login"))
+
 
 @app.errorhandler(Exception)
 def handle_error(e):
@@ -782,12 +788,14 @@ def add_user():
             if insert_user(username, password):
                 flash('User added successfully!', 'success')
             else:
-                flash('Password must contain at least 8 characters, an uppercase letter, a lowercase letter, and a number.', 'danger')
+                flash(
+                    'Password must contain at least 8 characters, an uppercase letter, a lowercase letter, and a number.', 'danger')
 
             return redirect(url_for('profile'))
 
         return render_template('add_user.html', username=session['username'])
     return redirect(url_for('login'))
+
 
 def delete_user_from_db(user_id):
     db = get_db()
@@ -814,6 +822,7 @@ def delete_user(user_id):
     return redirect(url_for('login'))
 
 ############################################################################################
+
 
 def initialize_camera():
     global camera
@@ -925,7 +934,8 @@ def initialize_camera():
             asi.ASI_EXPOSURE)[0] / 1000) * 2 + 500
         camera.default_timeout = timeout
 
-        save_control_values("camera-settings", camera.get_control_values())
+        if (platform.system() == 'Linux'):
+            save_control_values("camera-settings", camera.get_control_values())
 
     except Exception as e:
         error_message = f"Error initializing camera: {str(e)}"
@@ -936,22 +946,49 @@ def initialize_camera():
     return None  # Initialization successful
 
 
+def resize_without_distortion(img, target_size):
+    # Ensure target_size is in (width, height) format
+    target_width, target_height = target_size
+
+    # Get the original dimensions
+    original_height, original_width = img.shape[:2]
+
+    # Calculate the aspect ratios
+    aspect_ratio_original = original_width / original_height
+    aspect_ratio_target = target_width / target_height
+
+    # Calculate the new size based on the original aspect ratio
+    if aspect_ratio_original > aspect_ratio_target:
+        new_width = target_width
+        new_height = int(target_width / aspect_ratio_original)
+    else:
+        new_width = int(target_height * aspect_ratio_original)
+        new_height = target_height
+
+    # Resize the image using the INTER_AREA interpolation method
+    img_resized = cv2.resize(
+        img, (new_width, new_height), interpolation=cv2.INTER_AREA)
+
+    return img_resized
+
+
 # Your existing code for model initialization, etc.
+
 
 def generate_frames():
     # Here is the actual work
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    
+
     logging.info("Using: " + str(device))
-    
+
     selected_model = load_selected_model_from_config()
     logging.info("----> MODEL <----")
     logging.info("loading AI model " + selected_model)
     logging.info("----> MODEL <----")
     model = YOLO("models/" + selected_model)  # Replace with your YOLO model
     classNames = ["Impact", "Satellite", "Shadow"]
-    
+
     while True:
         try:
             img_resized = None  # Reset img_resized on each iteration
@@ -967,16 +1004,21 @@ def generate_frames():
                     break
                 except asi.ZWO_CaptureError as e:
                     print(f"Capture error: {e}")
-                    
-
 
             # Ensure the image is in the correct format (BGR)
             # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = cv2.cvtColor(img, asi.ASI_IMG_RGB24)
 
+            # Print the original size
+            original_height, original_width = img.shape[:2]
+
+            print("Original Height:", original_height)
+            print("Original Width:", original_width)
+            print("")
+
             # Resize image to match YOLO model input size
             target_size = (640, 640)
-            img_resized = cv2.resize(img, target_size)
+            img_resized = resize_without_distortion(img, target_size)
 
             # Create an empty list to store bounding boxes
             bounding_boxes = []
@@ -1024,7 +1066,7 @@ def generate_frames():
                         frame_filename = os.path.join(
                             detections_folder, f'original_{date_time.replace(" ", "_").replace(":", "-")}.jpg')
                         cv2.imwrite(frame_filename,
-                                    cv2.resize(img, target_size))
+                                    img)
 
                         # Draw the new bounding boxes on the image
                         for box in bounding_boxes:
@@ -1035,7 +1077,8 @@ def generate_frames():
                         # Save frame with detection
                         frame_filename = os.path.join(
                             detections_folder, f'detection_{date_time.replace(" ", "_").replace(":", "-")}.jpg')
-                        cv2.imwrite(frame_filename, img_resized)
+                        cv2.imwrite(frame_filename, resize_without_distortion(
+                            img_resized, (original_height, original_width)))
 
             # Draw the new bounding boxes on the image
             for box in bounding_boxes:
@@ -1096,6 +1139,7 @@ def get_camera_controls():
             return jsonify(success=False, error=str(e)), 500
     return redirect(url_for('login'))
 
+
 @app.route('/set_camera_controls', methods=['POST'])
 def set_camera_controls():
     if session['username']:
@@ -1123,11 +1167,13 @@ def set_camera_controls():
 
                 logging.info(
                     f"Camera controls set: {dict(gain=gain, exposure=exposure, wb_b=wb_b, wb_r=wb_r, gamma=gamma, brightness=brightness, flip=flip)}")
-                save_control_values("camera-settings", camera.get_control_values())
-                #flash('Camera values successfully updated', 'success')
+                if (platform.system() == 'Linux'):
+                    save_control_values("camera-settings",
+                                        camera.get_control_values())
+                # flash('Camera values successfully updated', 'success')
                 return jsonify(success=True, message="Camera values updated"), 200
             else:
-                #flash('Cannot set camera values', 'warning')
+                # flash('Cannot set camera values', 'warning')
                 return jsonify(success=False, error="Camera not available"), 404
         except ValueError as e:
             logging.error(f"Invalid value: {e}")
@@ -1140,11 +1186,13 @@ def set_camera_controls():
             return jsonify(success=False, error=str(e)), 500
     return redirect(url_for('login'))
 
+
 @app.route('/video_feed')
 def video_feed():
     if session['username']:
         return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
     return redirect(url_for('login'))
+
 
 @app.route('/detections')
 def detections():
@@ -1165,6 +1213,7 @@ def detections():
         return render_template('detections.html', columns=df.columns, data=data, pagination=pagination, username=session['username'])
     return redirect(url_for('login'))
 
+
 @app.route('/jaiid/version')
 def version():
     if session['username']:
@@ -1182,7 +1231,7 @@ def process_model():
         # Save selected_model to config file
         save_selected_model_to_config(selected_model)
         model_files = get_model_files()
-        return render_template('settings.html', model_files=model_files,selected_model=selected_model)
+        return render_template('settings.html', model_files=model_files, selected_model=selected_model)
     return redirect(url_for('login'))
 
 
@@ -1206,12 +1255,14 @@ def settings():
             if file and allowed_file(file.filename):
                 timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
                 filename_with_timestamp = f'jaiid-model-{timestamp}.pt'
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename_with_timestamp))
+                file.save(os.path.join(
+                    app.config['UPLOAD_FOLDER'], filename_with_timestamp))
 
                 # Update model_files after uploading a new model
                 model_files = get_model_files()
 
-                flash(f'Model {filename_with_timestamp} uploaded successfully', 'success')
+                flash(
+                    f'Model {filename_with_timestamp} uploaded successfully', 'success')
                 return redirect(url_for('settings'))
 
             flash('Invalid file format. Allowed formats: .pt', 'error')
@@ -1219,9 +1270,6 @@ def settings():
                                    error='Invalid file format. Allowed formats: .pt, .pth', username=session['username'])
 
     return render_template('settings.html', model_files=model_files, selected_model=selected_model, username=session['username'])
-
-
-
 
 
 @app.route('/delete_model', methods=['POST'])
@@ -1240,7 +1288,8 @@ def delete_model():
             if model_name_to_delete != session.get('selected_model'):
                 try:
                     os.remove(model_path)
-                    flash(f'Model {model_name_to_delete} deleted successfully', 'success')
+                    flash(
+                        f'Model {model_name_to_delete} deleted successfully', 'success')
                 except Exception as e:
                     flash(f'Error deleting model: {e}', 'danger')
 
@@ -1252,12 +1301,6 @@ def delete_model():
     # If the model name is empty or the file does not exist, flash an error message
     flash('Invalid model name for deletion', 'danger')
     return redirect(url_for('settings'))
-
-
-
-
-
-
 
 
 if __name__ == "__main__":
