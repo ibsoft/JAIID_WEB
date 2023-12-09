@@ -12,7 +12,7 @@ import sys
 import bcrypt
 import time
 import traceback
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import csv
 import math
 import platform
@@ -996,6 +996,9 @@ def generate_frames():
     model = YOLO("models/" + selected_model)  # Replace with your YOLO model
     classNames = ["Impact", "Satellite", "Shadow"]
 
+    # Retrieve the boolean value from the configuration file
+    is_utc_enabled = config.getboolean('UTC', 'utc')
+
     while True:
         try:
             img_resized = None  # Reset img_resized on each iteration
@@ -1060,13 +1063,30 @@ def generate_frames():
                     # Get current date and time once
                     date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
+                    date_time_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
+                    date_time_str_utc = date_time_utc.strftime(
+                        '%Y-%m-%d %H:%M:%S UTC')
+
+                    # Check if UTC is enabled in the configuration
+                    if is_utc_enabled:
+                        # Convert the local time to UTC
+                        date_time_utc = datetime.strptime(
+                            date_time, '%Y-%m-%d %H:%M:%S')
+                        date_time_utc = date_time_utc.replace(
+                            tzinfo=timezone.utc)
+                        date_time_utc = date_time_utc.strftime(
+                            '%Y-%m-%d %H:%M:%S')
+                    else:
+                        # Use local time
+                        date_time_utc = date_time
+
                     # If the detected object is a "Impact," write to CSV and save frame
                     if classNames[cls] == 'Impact':
                         # Write to CSV
                         with open(csv_file_path, 'a', newline='') as csvfile:
                             writer = csv.DictWriter(
                                 csvfile, fieldnames=fieldnames)
-                            writer.writerow({'Date_Time': date_time, 'Object': f'detection_{date_time.replace(" ", "_").replace(":", "-")}.jpg',
+                            writer.writerow({'Date_Time': date_time_utc, 'Object': f'detection_{date_time_utc.replace(" ", "_").replace(":", "-")}.jpg',
                                             'Confidence': confidence, 'Coordinates': f'({x1},{y1})-({x2},{y2})'})
 
                         # Save frame without detection
@@ -1083,7 +1103,7 @@ def generate_frames():
 
                         # Save frame with detection
                         frame_filename = os.path.join(
-                            detections_folder, f'detection_{date_time.replace(" ", "_").replace(":", "-")}.jpg')
+                            detections_folder, f'detection_{date_time_utc.replace(" ", "_").replace(":", "-")}.jpg')
                         cv2.imwrite(frame_filename, resize_without_distortion(
                             img_resized, (original_height, original_width)))
 
