@@ -1072,16 +1072,16 @@ def generate_frames():
                     # Print UTC offset
                     print("UTC Time:", date_time_utc.strftime('%Y-%m-%d %H:%M:%S %z'))
 
+                    # Use UTC time for filenames
+                    date_time_utc_str = date_time_utc.strftime('%Y-%m-%d_%H-%M-%S_UTC')
+
                     # Check if UTC is enabled in the configuration
                     if is_utc_enabled:
-                        date_time_utc.strftime('%Y-%m-%d %H:%M:%S %z')
-                    else:
-                        # Convert the local time to UTC
-                        date_time_utc = datetime.strptime(date_time, '%Y-%m-%d %H:%M:%S')
-                        date_time_utc = date_time_utc.replace(tzinfo=timezone.utc)
                         date_time_utc_str = date_time_utc.strftime('%Y-%m-%d_%H-%M-%S_UTC')
-                        date_time_utc = date_time_utc_str
-
+                    else:
+                        # Use local time
+                        date_time_utc_str = date_time
+                        
                     # Print UTC time and converted UTC time
                     print("UTC Time:", date_time_utc.strftime('%Y-%m-%d %H:%M:%S %z'))
                     print("Converted UTC Time:", date_time_utc_str)
