@@ -1064,28 +1064,32 @@ def generate_frames():
                         round(confidence * 100, 2)) + "%", org, font, fontScale, color, thickness)
 
                     # Get current date and time once
-                    date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S_local')
 
                     # Get current time in UTC
                     date_time_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
 
                     # Print UTC offset
-                    print("UTC Time:", date_time_utc.strftime('%Y-%m-%d %H:%M:%S %z'))
+                    print("UTC Time:", date_time_utc.strftime(
+                        '%Y-%m-%d %H:%M:%S %z'))
 
                     # Use UTC time for filenames
-                    date_time_utc_str = date_time_utc.strftime('%Y-%m-%d_%H-%M-%S_UTC')
+                    date_time_utc_str = date_time_utc.strftime(
+                        '%Y-%m-%d_%H-%M-%S_utc')
 
                     # Check if UTC is enabled in the configuration
                     if is_utc_enabled:
-                        date_time_utc_str = date_time_utc.strftime('%Y-%m-%d_%H-%M-%S_UTC')
+                        date_time_utc_str = date_time_utc.strftime(
+                            '%Y-%m-%d_%H-%M-%S_utc')
                     else:
                         # Use local time
-                        date_time_utc_str = date_time.strftime('%Y-%m-%d_%H-%M-%S_Local')
-                        
+                        date_time_utc_str = date_time
+
                     # Print UTC time and converted UTC time
-                    print("UTC Time:", date_time_utc.strftime('%Y-%m-%d %H:%M:%S %z'))
+                    print("UTC Time:", date_time_utc.strftime(
+                        '%Y-%m-%d %H:%M:%S %z'))
                     print("Converted UTC Time:", date_time_utc_str)
-                        
+
                     # If the detected object is a "Impact," write to CSV and save frame
                     if classNames[cls] == 'Impact':
                         # Write to CSV
@@ -1258,82 +1262,110 @@ def version():
 @app.route('/process_model', methods=['POST'])
 def process_model():
     if session['username']:
+        is_utc_enabled = config.getboolean('UTC', 'utc')
         selected_model = request.form['selected_model']
         # Do something with the selected_model, e.g., set it as a session variable
         session['selected_model'] = selected_model
         # Save selected_model to config file
         save_selected_model_to_config(selected_model)
         model_files = get_model_files()
-        return render_template('settings.html', model_files=model_files, selected_model=selected_model)
+        return render_template('settings.html', model_files=model_files, selected_model=selected_model, is_utc_enabled=is_utc_enabled)
     return redirect(url_for('login'))
 
 
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
-    model_files = get_model_files()
-    selected_model = load_selected_model_from_config()
+    if session['username']:
+        model_files = get_model_files()
+        selected_model = load_selected_model_from_config()
 
-    if request.method == 'POST':
-        # Check if the form was submitted for model selection
-        if 'selected_model' in request.form:
-            selected_model = request.form['selected_model']
-            # Do something with the selected_model, e.g., set it as a session variable
-            session['selected_model'] = selected_model
-            # Save selected_model to config file
-            save_selected_model_to_config(selected_model)
+        is_utc_enabled = config.getboolean('UTC', 'utc')
 
-        # Check if the form was submitted for file upload
-        elif 'file' in request.files:
-            file = request.files['file']
-            if file and allowed_file(file.filename):
-                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-                filename_with_timestamp = f'jaiid-model-{timestamp}.pt'
-                file.save(os.path.join(
-                    app.config['UPLOAD_FOLDER'], filename_with_timestamp))
+        if request.method == 'POST':
+            # Check if the form was submitted for model selection
+            if 'selected_model' in request.form:
+                selected_model = request.form['selected_model']
+                # Do something with the selected_model, e.g., set it as a session variable
+                session['selected_model'] = selected_model
+                # Save selected_model to config file
+                save_selected_model_to_config(selected_model)
 
-                # Update model_files after uploading a new model
-                model_files = get_model_files()
+            # Check if the form was submitted for file upload
+            elif 'file' in request.files:
+                file = request.files['file']
+                if file and allowed_file(file.filename):
+                    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                    filename_with_timestamp = f'jaiid-model-{timestamp}.pt'
+                    file.save(os.path.join(
+                        app.config['UPLOAD_FOLDER'], filename_with_timestamp))
 
-                flash(
-                    f'Model {filename_with_timestamp} uploaded successfully', 'success')
-                return redirect(url_for('settings'))
+                    # Update model_files after uploading a new model
+                    model_files = get_model_files()
 
-            flash('Invalid file format. Allowed formats: .pt', 'error')
-            return render_template('settings.html', model_files=model_files, selected_model=selected_model,
-                                   error='Invalid file format. Allowed formats: .pt, .pth', username=session['username'])
+                    flash(
+                        f'Model {filename_with_timestamp} uploaded successfully', 'success')
+                    return redirect(url_for('settings'))
 
-    return render_template('settings.html', model_files=model_files, selected_model=selected_model, username=session['username'])
+                flash('Invalid file format. Allowed formats: .pt', 'error')
+                return render_template('settings.html', model_files=model_files, selected_model=selected_model,
+                                       error='Invalid file format. Allowed formats: .pt, .pth', username=session['username'])
+
+        return render_template('settings.html', model_files=model_files, selected_model=selected_model, username=session['username'], is_utc_enabled=is_utc_enabled)
+    return redirect(url_for('login'))
 
 
 @app.route('/delete_model', methods=['POST'])
 def delete_model():
-    model_name_to_delete = request.form['model_name']
+    if (session['username']):
+        model_name_to_delete = request.form['model_name']
+        is_utc_enabled = config.getboolean('UTC', 'utc')
+        # Ensure that the model name is not empty or None
+        if model_name_to_delete:
+            # Path to the models folder
+            models_folder = "models/"
 
-    # Ensure that the model name is not empty or None
-    if model_name_to_delete:
-        # Path to the models folder
-        models_folder = "models/"
+            # Ensure that the model file exists before attempting to delete
+            model_path = os.path.join(models_folder, model_name_to_delete)
+            if os.path.exists(model_path):
+                # Check if the model to delete is not the currently selected model
+                if model_name_to_delete != session.get('selected_model'):
+                    try:
+                        os.remove(model_path)
+                        flash(
+                            f'Model {model_name_to_delete} deleted successfully', 'success')
+                    except Exception as e:
+                        flash(f'Error deleting model: {e}', 'danger')
 
-        # Ensure that the model file exists before attempting to delete
-        model_path = os.path.join(models_folder, model_name_to_delete)
-        if os.path.exists(model_path):
-            # Check if the model to delete is not the currently selected model
-            if model_name_to_delete != session.get('selected_model'):
-                try:
-                    os.remove(model_path)
-                    flash(
-                        f'Model {model_name_to_delete} deleted successfully', 'success')
-                except Exception as e:
-                    flash(f'Error deleting model: {e}', 'danger')
+                    return redirect(url_for('settings', is_utc_enabled=is_utc_enabled))
+                else:
+                    flash('Cannot delete the currently selected model.', 'danger')
+                    return redirect(url_for('settings', is_utc_enabled=is_utc_enabled))
 
-                return redirect(url_for('settings'))
-            else:
-                flash('Cannot delete the currently selected model.', 'danger')
-                return redirect(url_for('settings'))
+        # If the model name is empty or the file does not exist, flash an error message
+        flash('Invalid model name for deletion', 'danger')
+        return redirect(url_for('settings'))
+    return redirect(url_for('login'))
 
-    # If the model name is empty or the file does not exist, flash an error message
-    flash('Invalid model name for deletion', 'danger')
-    return redirect(url_for('settings'))
+
+@app.route('/process_time_option', methods=['POST'])
+def process_time_option():
+    if (session['username']):
+        # Get the selected option from the form
+        selected_option = request.form.get('time_option')
+
+        # Update the configuration based on the selected option
+        if selected_option == 'utc':
+            is_utc_enabled = True
+        elif selected_option == 'local':
+            is_utc_enabled = False
+
+        # Update the configuration file
+        config.set('UTC', 'utc', str(is_utc_enabled))
+        with open('application.conf', 'w') as configfile:
+            config.write(configfile)
+        flash('Option saved successfully!', 'success')
+        return redirect(url_for('settings', is_utc_enabled=is_utc_enabled, username=session['username']))
+    return redirect(url_for('login'))
 
 
 if __name__ == "__main__":
