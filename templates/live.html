@@ -189,13 +189,20 @@
             zoom(0.9); // You can adjust the scale factor as needed
         }
     
-        // Function to perform the zoom
         function zoom(scaleFactor) {
             const videoFeed = document.getElementById('video-feed');
             const currentScale = parseFloat(videoFeed.style.transform.replace('scale(', '').replace(')', '')) || 1;
-    
+        
+            // Set minimum and maximum scale values
+            const minScale = 0.5; // Adjust as needed
+            const maxScale = 1.0; // Adjust as needed
+        
             const newScale = currentScale * scaleFactor;
-            videoFeed.style.transform = `scale(${newScale})`;
+        
+            // Check if the new scale is within the specified range
+            if (newScale >= minScale && newScale <= maxScale) {
+                videoFeed.style.transform = `scale(${newScale})`;
+            }
         }
     </script>
 {% endblock %}

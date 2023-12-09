@@ -133,10 +133,16 @@ def load_selected_model_from_config():
 
 # Create and open a CSV file
 csv_file_path = 'detections.csv'
-with open(csv_file_path, 'w', newline='') as csvfile:
-    fieldnames = ['Date_Time', 'Object', 'Confidence', 'Coordinates']
-    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-    writer.writeheader()
+fieldnames = ['Date_Time', 'Object', 'Confidence', 'Coordinates']
+
+if not os.path.exists(csv_file_path):
+    # Create and open the CSV file
+    with open(csv_file_path, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+    print(f"CSV file '{csv_file_path}' created.")
+else:
+    print(f"CSV file '{csv_file_path}' already exists.")
 
 # Create a folder for storing frames with detections
 detections_folder = 'detections'
@@ -1057,7 +1063,7 @@ def generate_frames():
                     # object details
                     org = [x1, y1]
                     font = cv2.FONT_HERSHEY_SIMPLEX
-                    fontScale = 0.70
+                    fontScale = 0.60
                     color = (240, 103, 13)
                     thickness = 2
                     cv2.putText(img_resized, classNames[cls] + " " + str(
@@ -1108,8 +1114,9 @@ def generate_frames():
                         # Draw the new bounding boxes on the image
                         for box in bounding_boxes:
                             x1, y1, x2, y2 = box
+                            thickness = 2
                             cv2.rectangle(img_resized, (x1, y1),
-                                          (x2, y2), (255, 0, 255), 3)
+                                          (x2, y2), (255, 0, 255), thickness)
 
                         # Save frame with detection
                         frame_filename = os.path.join(
@@ -1120,8 +1127,9 @@ def generate_frames():
             # Draw the new bounding boxes on the image
             for box in bounding_boxes:
                 x1, y1, x2, y2 = box
+                thickness = 2
                 cv2.rectangle(img_resized, (x1, y1),
-                              (x2, y2), (255, 0, 255), 3)
+                              (x2, y2), (255, 0, 255), thickness)
 
             # Convert the image to JPEG format for streaming
             ret, jpeg = cv2.imencode('.jpg', img_resized)
