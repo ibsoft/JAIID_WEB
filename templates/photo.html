@@ -2,11 +2,7 @@
 
 {% block title %}Review Suspect Image{% endblock %}
 
-<style>
-    .modal-lg {
-        max-width: 190% !important;
-    }
-</style>
+
 
 {% block content %}
 
@@ -73,7 +69,7 @@
 
 <!-- Original Image Modal -->
 <div class="modal fade" id="originalImageModal" tabindex="-1" role="dialog" aria-labelledby="originalImageModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="originalImageModalLabel"><b>Original Image:</b> {{ original_filename }} </h5>
@@ -88,7 +84,7 @@
 
 <!-- Detection Image Modal -->
 <div class="modal fade" id="detectionImageModal" tabindex="-1" role="dialog" aria-labelledby="detectionImageModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="detectionImageModalLabel"><b>Detection Image:</b> {{ filename }}</h5>

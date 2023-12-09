@@ -11004,3 +11004,8 @@ body.sb-sidenav-toggled #wrapper #sidebar-wrapper {
     background-color: white;
   }
 }
+
+
+.modal-dialog.modal-xl {
+    max-width: 70% !important;
+}
