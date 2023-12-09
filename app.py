@@ -1080,7 +1080,7 @@ def generate_frames():
                         date_time_utc_str = date_time_utc.strftime('%Y-%m-%d_%H-%M-%S_UTC')
                     else:
                         # Use local time
-                        date_time_utc_str = date_time
+                        date_time_utc_str = date_time.strftime('%Y-%m-%d_%H-%M-%S_Local')
                         
                     # Print UTC time and converted UTC time
                     print("UTC Time:", date_time_utc.strftime('%Y-%m-%d %H:%M:%S %z'))
