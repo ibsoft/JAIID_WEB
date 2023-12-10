@@ -26,7 +26,7 @@ Python 3.10.12
 
 
 1. Clone the repository [ git clone https://github.com/ibsoft/JAIID_WEB.git ]
-2. Connect your camera !!! <-- IMPORTANT
+2. Install ZWO ASI drivers (ZWO_ASI_Cameras_driver_Setup_V3.23.exe)  & Connect your camera !!! <-- IMPORTANT
 3. [ cd JAIID_WEB ]
 4. IF LINUX [ python3 -m venv venv ]
 5. IF WINDOWS [ python -m venv venv ]
