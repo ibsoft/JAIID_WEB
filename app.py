@@ -385,13 +385,14 @@ def dashboard():
 @app.route('/live')
 def live():
     if session['username']:
+
         # Attempt to initialize the camera
         error_message = initialize_camera()
 
         while error_message:
             # Camera initialization failed, flash an error message
             flash(error_message, 'danger')
-            return render_template('live.html', username=session.get("username", None))
+            return render_template('live-dummy.html', username=session.get("username", None))
 
         if (camera_model):
             CameraModel = camera_model
@@ -401,6 +402,7 @@ def live():
         flash("Camera " + camera_model + " initialized successfully!", 'success')
 
         return render_template('live.html', username=session["username"], det_camera=CameraModel)
+
     return redirect(url_for("login"))
 
 
@@ -1236,6 +1238,13 @@ def set_camera_controls():
 def video_feed():
     if session['username']:
         return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return redirect(url_for('login'))
+
+
+@app.route('/video_feed_dummy')
+def video_feed_dummy():
+    if session['username']:
+        return render_template('live-dummy.html', mimetype='multipart/x-mixed-replace; boundary=frame')
     return redirect(url_for('login'))
 
 
