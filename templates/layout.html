@@ -109,6 +109,7 @@
                 <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{ url_for('dashboard') }}"><i class="far fa-dot-circle"></i> Dashboard</a>
                 <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{ url_for('live') }}"><i class="far fa-dot-circle"></i> Live Detection</a>
                 <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{ url_for('detections') }}"><i class="far fa-dot-circle"></i> Detection Logs</a>
+                <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{ url_for('report') }}"><i class="far fa-dot-circle"></i> Share & Report</a>
                 <!--<a class="list-group-item list-group-item-action list-group-item-light p-3" href="#!">Shortcuts</a>-->
                 {% if username == 'admin' %}
                     <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{ url_for('log') }}"><i class="far fa-dot-circle"></i> Application Logs</a>
