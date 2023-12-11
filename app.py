@@ -152,6 +152,10 @@ detections_folder = 'detections'
 if not os.path.exists(detections_folder):
     os.makedirs(detections_folder)
 
+# Create a folder for storing observations
+community_folder = 'community'
+if not os.path.exists(community_folder):
+    os.makedirs(community_folder)
 
 def save_control_values(filename, settings):
     filename += '.txt'
