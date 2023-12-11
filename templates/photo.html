@@ -75,7 +75,7 @@
                 <h5 class="modal-title" id="originalImageModalLabel"><b>Original Image:</b> {{ original_filename }} </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body text-center">
                 <img src="{{ url_for('serve_image', folder='detections', filename=original_filename) }}" class="img-fluid" alt="{{ original_filename }}">
             </div>
         </div>
@@ -90,7 +90,7 @@
                 <h5 class="modal-title" id="detectionImageModalLabel"><b>Detection Image:</b> {{ filename }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body text-center">
                 <img src="{{ url_for('serve_detection_image', folder='detections', filename=filename) }}" class="img-fluid" alt="{{ filename }}">
             </div>
         </div>
