@@ -1,4 +1,5 @@
 import math
+import zipfile
 from flask import Flask, Response, flash, jsonify, render_template, send_from_directory, request, redirect, session, url_for, g
 from flask_session import Session
 from configparser import ConfigParser
@@ -23,7 +24,6 @@ import zwoasi as asi
 import pprint
 import time
 import torch
-import threading
 from ultralytics import YOLO
 from flask_paginate import Pagination
 
@@ -98,6 +98,9 @@ Session(app)
 app.config['UPLOAD_FOLDER'] = 'models'
 app.config['ALLOWED_EXTENSIONS'] = {'pt'}
 
+#download reports
+app.config['COMMUNITY_UPLOAD_FOLDER'] = 'community'
+app.config['COMMUNITY_ALLOWED_EXTENSIONS'] = {'zip'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -511,26 +514,33 @@ def delete_all_photos(directory_path):
         # List all files in the directory
         files = os.listdir(directory_path)
 
-        # Iterate through each file and delete it
+        # Check if there are files to delete
+        if not files:
+            flash('No photos to delete', 'info')
+            return redirect(url_for('dashboard'))
+
+        # Delete all photos
         for file in files:
             file_path = os.path.join(directory_path, file)
             os.remove(file_path)
 
-        # Initialize CSV
-        csv_file_path = os.path.join('detections.csv')
+        # Initialize CSV (assuming this function is responsible for creating detections.csv)
         initialize_csv(csv_file_path)
 
         flash('All photos deleted successfully', 'success')
 
         return redirect(url_for('dashboard'))
+
     except Exception as e:
-        traceback.print_exc()  # Print the full traceback to the console for debugging
+        print(e)
+        traceback.print_exc()
         return render_template('error.html', error_message=str(e))
 
 
 @app.route('/delete_all_photos', methods=['POST'])
 def delete_all_photos_route():
     if session['username']:
+        
         directory_path = config.get("DETECTION_DIR", "detection_dir")
 
         # Call the function to delete all photos in the directory
@@ -539,6 +549,49 @@ def delete_all_photos_route():
         return redirect(url_for('dashboard'))
     return redirect(url_for("login"))
 
+
+@app.route('/create_observation', methods=['POST'])
+def create_observation():
+    try:
+        if 'username' in session:
+            # Get observer
+            observer = config.get('OBSERVER', 'name')
+
+            # Directory path for detections
+            directory_path = config.get('DETECTION_DIR', 'detection_dir')
+
+            # List all files in the directory
+            files = os.listdir(directory_path)
+
+            # Check if there are files to create an observation
+            if not files:
+                flash('No photos to create an observation', 'info')
+                return redirect(url_for('dashboard'))
+
+            # Create a ZIP file with a filename containing the current datetime
+            zip_filename = observer + f"_detections_{datetime.now().strftime('%Y%m%d%H%M%S')}.zip"
+            zip_filepath = os.path.join('community', zip_filename)
+
+            with zipfile.ZipFile(zip_filepath, 'w') as zipf:
+                # Iterate through each file and add it to the ZIP archive
+                for file in files:
+                    file_path = os.path.join(directory_path, file)
+                    zipf.write(file_path, arcname=os.path.basename(file_path))
+
+                # Add the detections.csv file to the ZIP archive
+                csv_file_path = os.path.join('detections.csv')
+                zipf.write(csv_file_path, arcname=os.path.basename(csv_file_path))
+
+            flash('Observation created successfully', 'success')
+            return redirect(url_for('report'))
+
+        else:
+            flash('User not authenticated', 'error')
+            return redirect(url_for('login'))
+
+    except Exception as e:
+        flash(f'Error creating observation: {str(e)}', 'error')
+        return redirect(url_for('dashboard'))
 
 @app.route("/logout", methods=["GET"])
 def logout():
@@ -1295,6 +1348,7 @@ def settings():
     if session['username']:
         model_files = get_model_files()
         selected_model = load_selected_model_from_config()
+        observer = config.get('OBSERVER','name')
 
         is_utc_enabled = config.getboolean('UTC', 'utc')
 
@@ -1327,7 +1381,7 @@ def settings():
                 return render_template('settings.html', model_files=model_files, selected_model=selected_model,
                                        error='Invalid file format. Allowed formats: .pt, .pth', username=session['username'])
 
-        return render_template('settings.html', model_files=model_files, selected_model=selected_model, username=session['username'], is_utc_enabled=is_utc_enabled)
+        return render_template('settings.html', model_files=model_files, selected_model=selected_model, username=session['username'], is_utc_enabled=is_utc_enabled, observer_name=observer)
     return redirect(url_for('login'))
 
 
@@ -1383,6 +1437,74 @@ def process_time_option():
         flash('Option saved successfully!', 'success')
         return redirect(url_for('settings', is_utc_enabled=is_utc_enabled, username=session['username']))
     return redirect(url_for('login'))
+
+
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['COMMUNITY_ALLOWED_EXTENSIONS']
+
+@app.route('/report')
+def report():
+    if (session['username']):
+        file_info = get_file_info()
+        return render_template('community.html', file_info=file_info, username=session['username'])
+    return redirect(url_for('login'))
+
+@app.route('/delete/<filename>')
+def delete_file(filename):
+    if (session['username']):
+        file_path = os.path.join(app.config['COMMUNITY_UPLOAD_FOLDER'], filename)
+        os.remove(file_path)
+        flash(f'{filename} deleted successfully', 'success')
+        return redirect(url_for('report'))
+    return redirect(url_for('report'))
+
+def get_file_info():
+    file_info = []
+    for filename in os.listdir(app.config['COMMUNITY_UPLOAD_FOLDER']):
+        file_path = os.path.join(app.config['COMMUNITY_UPLOAD_FOLDER'], filename)
+        stat_info = os.stat(file_path)
+        date_created = datetime.fromtimestamp(stat_info.st_ctime).strftime('%Y-%m-%d %H:%M:%S')
+        size = stat_info.st_size
+        file_type = 'ZIP'
+        file_info.append({'filename': filename, 'date_created': date_created, 'size': size, 'file_type': file_type})
+    return file_info
+
+
+
+@app.route('/community/<filename>')
+def download_file(filename):
+    if session['username']:
+        detection_folder = "community"
+        return send_from_directory(detection_folder, filename)
+    return redirect(url_for("login"))
+
+
+
+# Process Observer form
+@app.route('/process_observer', methods=['POST'])
+def process_observer():
+    try:
+        if 'username' in session:
+            new_observer_name = request.form.get('observer_name')
+
+            config.set('OBSERVER', 'name', new_observer_name)
+
+            with open('application.conf', 'w') as config_file:
+                config.write(config_file)
+
+            flash('Observer name updated successfully', 'success')
+            return redirect(url_for('settings'))
+
+        else:
+            flash('User not authenticated', 'error')
+            return redirect(url_for('login'))
+
+    except Exception as e:
+        flash(f'Error updating observer name: {str(e)}', 'error')
+        return redirect(url_for('settings'))
+
 
 
 if __name__ == "__main__":

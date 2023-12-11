@@ -1,0 +1,60 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    Live Detection
+{% endblock %}
+
+{% block content %}
+<br>
+<h1 class="mb-4"><i class="fa fa-envelope"></i> Community Reporting</h1>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Report</h5>
+    </div>
+
+    <div class="card-body">
+        <div class="container mt-12">
+            
+            <h5 class="mt-4">Notify the community about your findings. Download your detection file and send an email from the link <a href="mailto:jaiid.commumity@gmail.com?subject=JAIID%20Detection:%20Logs&body=Body%20of%20the%20email%20here">Send Email</a>
+            </h5>
+
+            <div class="container mt-5">
+                <h2>Observation File List</h2>
+                
+                {% if file_info %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Filename</th>
+                                <th>Date Created</th>
+                                <th>Size</th>
+                                <th>Type</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in file_info %}
+                                <tr>
+                                    <td>{{ file['filename'] }}</td>
+                                    <td>{{ file['date_created'] }}</td>
+                                    <td>{{ file['size'] }}</td>
+                                    <td>{{ file['file_type'] }}</td>
+                                    <td>
+                                        <a href="{{ url_for('delete_file', filename=file['filename']) }}" class="btn btn-danger btn-sm">Delete</a>
+                                        <a href="{{ url_for('download_file', filename=file['filename']) }}" class="btn btn-primary btn-sm">Download</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>No observations yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<br>
+
+{% endblock %}

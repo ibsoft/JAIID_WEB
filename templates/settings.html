@@ -6,7 +6,31 @@
 
 {% block content %}
 <br>
-<h1 class="mb-4"><i class="fa fa-cog"></i> AI Models</h1>
+<h1 class="mb-4"><i class="fa fa-cog"></i> Settings</h1>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Observer Name or Alias</h5>
+    </div>
+
+    <div class="card-body">
+        <div class="container mt-5">
+            <form action="{{ url_for('process_observer') }}" method="post">
+                <div class="form-group">
+                    <label for="observer_name">Observer Name:</label>
+                    <input type="text" class="form-control" id="observer_name" name="observer_name" value="{{ observer_name }}">
+                    <small class="form-text text-muted">
+                        We encourage users to use an alias based on their first and last names (e.g., Jonathan Daglas --> JonDag).
+                    </small>
+                </div>
+                <br>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
+<br>
+
 
 <div class="card">
     <div class="card-header">
