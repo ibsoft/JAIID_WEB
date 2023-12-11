@@ -8,6 +8,6 @@ Gain: 200
 HighSpeedMode: 0
 MonoBin: 0
 Offset: 1
-Temperature: 302
+Temperature: 301
 WB_B: 95
 WB_R: 52
