@@ -131,6 +131,7 @@
                     </button>
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
+                          
                             <li class="nav-item active"><a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fa fa-home" aria-hidden="true"></i> Home</a></li>
                             <li class="nav-item active"><a class="nav-link" href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a></li>
                             <li class="nav-item active"><a class="nav-link" href="{{ url_for('version') }}"><i class="fas fa-copyright"></i> About</a></li>
@@ -144,6 +145,15 @@
                                 </div>
                             </li>
                             
+                            <li class="nav-item active">
+                              <a class="nav-link" href="{{ url_for('versioncheck') }}">
+                                  <i class="fas fa-bell" aria-hidden="true"></i>
+                                  {% if is_upgrade_available %}
+                                  <span class="badge navbar-badge text-dark" style="background-color: yellow;">New</span>
+                                  {% endif %}
+                              </a>
+                          </li>
+                          
                         </ul>
                     </div>
                     <div class="theme-switch">
