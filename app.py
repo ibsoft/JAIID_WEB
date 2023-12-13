@@ -1,8 +1,10 @@
 import math
+import threading
 import zipfile
-from flask import Flask, Response, flash, jsonify, render_template, send_from_directory, request, redirect, session, url_for, g
+from flask import Flask, Response, flash, jsonify, render_template, send_file, send_from_directory, request, redirect, session, url_for, g
 from flask_session import Session
 from configparser import ConfigParser
+import requests
 from werkzeug.utils import secure_filename
 import logging
 from logging.handlers import RotatingFileHandler
@@ -24,6 +26,7 @@ import zwoasi as asi
 import pprint
 import time
 import torch
+from queue import Queue
 from ultralytics import YOLO
 from flask_paginate import Pagination
 
@@ -98,9 +101,10 @@ Session(app)
 app.config['UPLOAD_FOLDER'] = 'models'
 app.config['ALLOWED_EXTENSIONS'] = {'pt'}
 
-#download reports
+# download reports
 app.config['COMMUNITY_UPLOAD_FOLDER'] = 'community'
 app.config['COMMUNITY_ALLOWED_EXTENSIONS'] = {'zip'}
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -129,6 +133,13 @@ def save_selected_model_to_config(selected_model):
         config.write(config_file)
 
 
+def save_new_model_to_config(selected_model):
+    config.read(config_file_path)
+    config.set("MODEL_VERSION", "model_version", selected_model)
+    with open(config_file_path, 'w') as config_file:
+        config.write(config_file)
+
+
 def load_selected_model_from_config():
     config.read(config_file_path)
     return config.get("MODEL", "selected_model", fallback=None)
@@ -152,6 +163,11 @@ detections_folder = 'detections'
 if not os.path.exists(detections_folder):
     os.makedirs(detections_folder)
     
+
+# Create a folder for storing observations
+community_folder = 'community'
+if not os.path.exists(community_folder):
+    os.makedirs(community_folder)
 
 # Create a folder for storing observations
 community_folder = 'community'
@@ -546,7 +562,7 @@ def delete_all_photos(directory_path):
 @app.route('/delete_all_photos', methods=['POST'])
 def delete_all_photos_route():
     if session['username']:
-        
+
         directory_path = config.get("DETECTION_DIR", "detection_dir")
 
         # Call the function to delete all photos in the directory
@@ -575,7 +591,8 @@ def create_observation():
                 return redirect(url_for('dashboard'))
 
             # Create a ZIP file with a filename containing the current datetime
-            zip_filename = observer + f"_detections_{datetime.now().strftime('%Y%m%d%H%M%S')}.zip"
+            zip_filename = observer + \
+                f"_detections_{datetime.now().strftime('%Y%m%d%H%M%S')}.zip"
             zip_filepath = os.path.join('community', zip_filename)
 
             with zipfile.ZipFile(zip_filepath, 'w') as zipf:
@@ -586,7 +603,8 @@ def create_observation():
 
                 # Add the detections.csv file to the ZIP archive
                 csv_file_path = os.path.join('detections.csv')
-                zipf.write(csv_file_path, arcname=os.path.basename(csv_file_path))
+                zipf.write(csv_file_path,
+                           arcname=os.path.basename(csv_file_path))
 
             flash('Observation created successfully', 'success')
             return redirect(url_for('report'))
@@ -598,6 +616,7 @@ def create_observation():
     except Exception as e:
         flash(f'Error creating observation: {str(e)}', 'error')
         return redirect(url_for('dashboard'))
+
 
 @app.route("/logout", methods=["GET"])
 def logout():
@@ -1354,7 +1373,7 @@ def settings():
     if session['username']:
         model_files = get_model_files()
         selected_model = load_selected_model_from_config()
-        observer = config.get('OBSERVER','name')
+        observer = config.get('OBSERVER', 'name')
 
         is_utc_enabled = config.getboolean('UTC', 'utc')
 
@@ -1445,10 +1464,9 @@ def process_time_option():
     return redirect(url_for('login'))
 
 
-
-
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['COMMUNITY_ALLOWED_EXTENSIONS']
+
 
 @app.route('/report')
 def report():
@@ -1457,26 +1475,31 @@ def report():
         return render_template('community.html', file_info=file_info, username=session['username'])
     return redirect(url_for('login'))
 
+
 @app.route('/delete/<filename>')
 def delete_file(filename):
     if (session['username']):
-        file_path = os.path.join(app.config['COMMUNITY_UPLOAD_FOLDER'], filename)
+        file_path = os.path.join(
+            app.config['COMMUNITY_UPLOAD_FOLDER'], filename)
         os.remove(file_path)
         flash(f'{filename} deleted successfully', 'success')
         return redirect(url_for('report'))
     return redirect(url_for('report'))
 
+
 def get_file_info():
     file_info = []
     for filename in os.listdir(app.config['COMMUNITY_UPLOAD_FOLDER']):
-        file_path = os.path.join(app.config['COMMUNITY_UPLOAD_FOLDER'], filename)
+        file_path = os.path.join(
+            app.config['COMMUNITY_UPLOAD_FOLDER'], filename)
         stat_info = os.stat(file_path)
-        date_created = datetime.fromtimestamp(stat_info.st_ctime).strftime('%Y-%m-%d %H:%M:%S')
+        date_created = datetime.fromtimestamp(
+            stat_info.st_ctime).strftime('%Y-%m-%d %H:%M:%S')
         size = stat_info.st_size
         file_type = 'ZIP'
-        file_info.append({'filename': filename, 'date_created': date_created, 'size': size, 'file_type': file_type})
+        file_info.append({'filename': filename, 'date_created': date_created,
+                         'size': size, 'file_type': file_type})
     return file_info
-
 
 
 @app.route('/community/<filename>')
@@ -1485,7 +1508,6 @@ def download_file(filename):
         detection_folder = "community"
         return send_from_directory(detection_folder, filename)
     return redirect(url_for("login"))
-
 
 
 # Process Observer form
@@ -1511,6 +1533,125 @@ def process_observer():
         flash(f'Error updating observer name: {str(e)}', 'error')
         return redirect(url_for('settings'))
 
+
+@app.route('/versioncheck')
+def versioncheck():
+    if 'username' in session:
+        # Create a Queue to communicate the result between threads
+        result_queue = Queue()
+
+        # Create a thread to run the check_internet_connection function
+        internet_thread = threading.Thread(
+            target=check_internet_connection, args=(result_queue,))
+
+        # Start the thread
+        internet_thread.start()
+
+        # Optionally, wait for the thread to finish
+        internet_thread.join()
+
+        # Retrieve the result from the Queue
+        internet_connected = result_queue.get()
+
+        if internet_connected:
+            # Get running version from your config
+            config.read(config_file_path)
+            running_version = config.get('MODEL_VERSION', 'model_version')
+
+            # Fetch JSON file from the specified URL
+            json_url = 'https://raw.githubusercontent.com/ibsoft/ibsoft-updates/main/jaiid/version.json'
+            response = requests.get(json_url)
+
+            if response.status_code == 200:
+                # Parse JSON content
+                versions_data = response.json()
+                # Extract the 'community_version' and 'download_link' from the JSON
+                community_version = versions_data.get('community_version', '')
+                download_link = versions_data.get('download_link', '')
+
+            else:
+                # Handle the case when fetching the JSON fails
+                community_version = ''
+                download_link = ''
+                flash('Cannot check for new model version', 'warning')
+
+            # Check if running version matches the community version
+            if compare_version_dates(running_version, community_version) < 0:
+                is_upgrade_available = True
+
+            else:
+                is_upgrade_available = False
+        else:
+            # No internet connection, set default values
+            is_upgrade_available = False
+            community_version = ''
+            download_link = ''
+            flash('No internet connection available.', 'warning')
+
+        # Render the template with the variables
+        return render_template('version.html', is_upgrade_available=is_upgrade_available, download_link=download_link, version=running_version, username=session['username'])
+    return redirect(url_for('login'))
+
+
+def check_internet_connection(result_queue):
+    try:
+        # Try to make a request to a known server (e.g., Google's public DNS)
+        requests.get("http://www.google.com", timeout=3)
+        result_queue.put(True)
+    except requests.ConnectionError:
+        result_queue.put(False)
+
+
+def compare_version_dates(local_version, community_version):
+    local_date = int(local_version.split('-')[-1].split('.')[0])
+    community_date = int(community_version.split('-')[-1].split('.')[0])
+    return local_date - community_date
+
+
+@app.route('/download_model')
+def download_model():
+    github_url = 'https://raw.githubusercontent.com/ibsoft/ibsoft-updates/main/jaiid/latest.pt'
+    response = requests.get(github_url)
+
+    if response.status_code == 200:
+        try:
+            current_datetime = datetime.now().strftime("%Y%m%d%H%M%S")
+
+            # Create the filename with the desired format
+            filename = f"jaiid-model-{current_datetime}.pt"
+
+            # Specify the path to the 'models' folder
+            models_folder = 'models'
+
+            # Ensure the 'models' folder exists; create if not
+            if not os.path.exists(models_folder):
+                os.makedirs(models_folder)
+
+            # Construct the full path to save the updated model
+            full_path = os.path.join(models_folder, filename)
+
+            # Save the updated model
+            with open(full_path, 'wb') as f:
+                f.write(response.content)
+
+            # Flash success message
+            flash(
+                'Model downloaded successfully! Please go to settings to select it.', 'success')
+
+            save_new_model_to_config(filename)
+
+            # Return the file as a response using Flask's send_file
+            return redirect(url_for('versioncheck'))
+
+        except Exception as e:
+            # Flash failure message
+            flash(f'Error downloading file: {str(e)}', 'danger')
+            return redirect(url_for('versioncheck'))
+    else:
+        # Flash failure message
+        flash('Error downloading file. Status code: ' +
+              str(response.status_code), 'danger')
+        return redirect(url_for('versioncheck'))
 
 
 if __name__ == "__main__":
