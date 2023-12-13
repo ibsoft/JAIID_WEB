@@ -63,6 +63,31 @@
 <br>
 <div class="card">
     <div class="card-header">
+        <h5 class="card-title">Model Detection Confidence</h5>
+    </div>
+
+    <div class="card-body">
+        <div class="container mt-5">
+            <form action="{{ url_for('impact_confidence') }}" method="post">
+                <div class="form-group">
+                    <label for="impact_confidence">Detection Confidence:</label>
+                    <input type="text" class="form-control" id="impact_confidence" name="impact_confidence" value="{{ impact_confidence }}">
+                    <small class="form-text text-muted">
+                        Values: 0.1 - 0.100
+                    </small>
+                </div>
+                <br>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
+<br>
+
+
+<br>
+<div class="card">
+    <div class="card-header">
         <h5 class="card-title">Upload Model</h5>
     </div>
 

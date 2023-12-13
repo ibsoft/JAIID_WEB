@@ -1087,6 +1087,9 @@ def generate_frames():
 
     # Retrieve the boolean value from the configuration file
     is_utc_enabled = config.getboolean('UTC', 'utc')
+    
+    #user defined confidence
+    user_dev_confidence = config.getfloat('CONFIDENCE','confidence')
 
     while True:
         try:
@@ -1175,9 +1178,10 @@ def generate_frames():
                     print("UTC Time:", date_time_utc.strftime(
                         '%Y-%m-%d %H:%M:%S %z'))
                     print("Converted UTC Time:", date_time_utc_str)
+                    
 
                     # If the detected object is a "Impact," write to CSV and save frame
-                    if classNames[cls] == 'Impact':
+                    if classNames[cls] == 'Impact' and confidence > user_dev_confidence:
                         # Write to CSV
                         with open(csv_file_path, 'a', newline='') as csvfile:
                             writer = csv.DictWriter(
@@ -1374,6 +1378,7 @@ def settings():
         model_files = get_model_files()
         selected_model = load_selected_model_from_config()
         observer = config.get('OBSERVER', 'name')
+        impact_confidence = config.get('CONFIDENCE', 'confidence')
 
         is_utc_enabled = config.getboolean('UTC', 'utc')
 
@@ -1406,7 +1411,7 @@ def settings():
                 return render_template('settings.html', model_files=model_files, selected_model=selected_model,
                                        error='Invalid file format. Allowed formats: .pt, .pth', username=session['username'])
 
-        return render_template('settings.html', model_files=model_files, selected_model=selected_model, username=session['username'], is_utc_enabled=is_utc_enabled, observer_name=observer)
+        return render_template('settings.html', model_files=model_files, selected_model=selected_model, username=session['username'], is_utc_enabled=is_utc_enabled, observer_name=observer,impact_confidence=impact_confidence)
     return redirect(url_for('login'))
 
 
@@ -1533,6 +1538,29 @@ def process_observer():
         flash(f'Error updating observer name: {str(e)}', 'error')
         return redirect(url_for('settings'))
 
+
+# Process Observer form
+@app.route('/process_conficence', methods=['POST'])
+def impact_confidence():
+    try:
+        if 'username' in session:
+            new_confidence_value = request.form.get('impact_confidence')
+
+            config.set('CONFIDENCE', 'confidence', new_confidence_value)
+
+            with open('application.conf', 'w') as config_file:
+                config.write(config_file)
+
+            flash('Impact confidence updated successfully', 'success')
+            return redirect(url_for('settings'))
+
+        else:
+            flash('User not authenticated', 'error')
+            return redirect(url_for('login'))
+
+    except Exception as e:
+        flash(f'Error updating observer name: {str(e)}', 'error')
+        return redirect(url_for('settings'))
 
 @app.route('/versioncheck')
 def versioncheck():
