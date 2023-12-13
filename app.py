@@ -1552,7 +1552,8 @@ def versioncheck():
 
         # Retrieve the result from the Queue
         internet_connected = result_queue.get()
-
+        
+        
         if internet_connected:
             # Get running version from your config
             config.read(config_file_path)
@@ -1586,6 +1587,8 @@ def versioncheck():
             is_upgrade_available = False
             community_version = ''
             download_link = ''
+            config.read(config_file_path)
+            running_version = config.get('MODEL_VERSION', 'model_version')
             flash('No internet connection available.', 'warning')
 
         # Render the template with the variables
