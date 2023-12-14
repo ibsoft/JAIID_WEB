@@ -392,7 +392,7 @@ def dashboard():
         num_pages = math.ceil(len(photos) / page_size)
 
         version = app.config['APP_VERSION']
-
+        
         return render_template(
             "index.html",
             username=session["username"],
@@ -1093,6 +1093,8 @@ def generate_frames():
 
     while True:
         try:
+            start = time.time()
+            
             img_resized = None  # Reset img_resized on each iteration
             img = None
 
@@ -1114,10 +1116,6 @@ def generate_frames():
             # Print the original size
             original_height, original_width = img.shape[:2]
 
-            print("Original Height:", original_height)
-            print("Original Width:", original_width)
-            print("")
-
             # Resize image to match YOLO model input size
             target_size = (640, 640)
             img_resized = resize_without_distortion(img, target_size)
@@ -1126,7 +1124,7 @@ def generate_frames():
             bounding_boxes = []
 
             # Perform YOLO model inference on the resized image
-            results = model(img_resized, stream=True)
+            results = model(img_resized, stream=True, device=device)
             for r in results:
                 boxes = r.boxes
 
@@ -1158,9 +1156,6 @@ def generate_frames():
                     # Get current time in UTC
                     date_time_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
 
-                    # Print UTC offset
-                    print("UTC Time:", date_time_utc.strftime(
-                        '%Y-%m-%d %H:%M:%S %z'))
 
                     # Use UTC time for filenames
                     date_time_utc_str = date_time_utc.strftime(
@@ -1173,11 +1168,6 @@ def generate_frames():
                     else:
                         # Use local time
                         date_time_utc_str = date_time
-
-                    # Print UTC time and converted UTC time
-                    print("UTC Time:", date_time_utc.strftime(
-                        '%Y-%m-%d %H:%M:%S %z'))
-                    print("Converted UTC Time:", date_time_utc_str)
                     
 
                     # If the detected object is a "Impact," write to CSV and save frame
@@ -1218,6 +1208,10 @@ def generate_frames():
             # Convert the image to JPEG format for streaming
             ret, jpeg = cv2.imencode('.jpg', img_resized)
             frame_bytes = jpeg.tobytes()
+            
+            end = time.time()
+            # show timing information on YOLO
+            print("[INFO] YOLO took {:.6f} seconds".format(end - start))
 
             # Add headers to disable caching
             yield (b'--frame\r\n'
