@@ -11009,3 +11009,13 @@ body.sb-sidenav-toggled #wrapper #sidebar-wrapper {
 .modal-dialog.modal-xl {
     max-width: 70% !important;
 }
+
+.theme-switch .switch {
+  width: 90px; /* Adjust the width as needed */
+  height: 32px; /* Adjust the height as needed */
+}
+
+.theme-switch .slider {
+  width: 10px; /* Adjust the width of the slider */
+  height: 2px; /* Adjust the height of the slider */
+}
