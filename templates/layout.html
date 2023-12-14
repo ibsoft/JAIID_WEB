@@ -134,7 +134,15 @@
                           
                             <li class="nav-item active"><a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fa fa-home" aria-hidden="true"></i> Home</a></li>
                             <li class="nav-item active"><a class="nav-link" href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a></li>
-                            <li class="nav-item active"><a class="nav-link" href="{{ url_for('version') }}"><i class="fas fa-copyright"></i> About</a></li>
+                            <li class="nav-item active">
+                              <a class="nav-link" href="{{ url_for('versioncheck') }}">
+                                  <i class="fas fa-download" aria-hidden="true"></i> Community
+                                  {% if is_upgrade_available %}
+                                  <span class="badge navbar-badge text-dark" style="background-color: yellow;">New</span>
+                                  {% endif %}
+                              </a>
+                          </li>
+                           
                             <!--<li class="nav-item"><a class="nav-link" href="#!"><i class="fa fa-user" aria-hidden="true"></i> Link</a></li>-->
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-user" aria-hidden="true"></i> Account [ {{username}} ]</a>
@@ -145,14 +153,7 @@
                                 </div>
                             </li>
                             
-                            <li class="nav-item active">
-                              <a class="nav-link" href="{{ url_for('versioncheck') }}">
-                                  <i class="fas fa-bell" aria-hidden="true"></i>
-                                  {% if is_upgrade_available %}
-                                  <span class="badge navbar-badge text-dark" style="background-color: yellow;">New</span>
-                                  {% endif %}
-                              </a>
-                          </li>
+                            <li class="nav-item active"><a class="nav-link" href="{{ url_for('version') }}"><i class="fas fa-copyright"></i> About</a></li>
                           
                         </ul>
                     </div>
