@@ -1358,7 +1358,7 @@ def process_model():
         # Save selected_model to config file
         save_selected_model_to_config(selected_model)
         model_files = get_model_files()
-        return render_template('settings.html', model_files=model_files, selected_model=selected_model, is_utc_enabled=is_utc_enabled, observer_name=observer,impact_confidence=impact_confidence)
+        return render_template('settings.html', model_files=model_files, selected_model=selected_model, is_utc_enabled=is_utc_enabled, observer_name=observer,impact_confidence=impact_confidence,username=session['username'])
     return redirect(url_for('login'))
 
 
