@@ -1356,13 +1356,15 @@ def version():
 def process_model():
     if session['username']:
         is_utc_enabled = config.getboolean('UTC', 'utc')
+        observer = config.get('OBSERVER', 'name')
+        impact_confidence = config.get('CONFIDENCE', 'confidence')
         selected_model = request.form['selected_model']
         # Do something with the selected_model, e.g., set it as a session variable
         session['selected_model'] = selected_model
         # Save selected_model to config file
         save_selected_model_to_config(selected_model)
         model_files = get_model_files()
-        return render_template('settings.html', model_files=model_files, selected_model=selected_model, is_utc_enabled=is_utc_enabled)
+        return render_template('settings.html', model_files=model_files, selected_model=selected_model, is_utc_enabled=is_utc_enabled, observer_name=observer,impact_confidence=impact_confidence)
     return redirect(url_for('login'))
 
 
